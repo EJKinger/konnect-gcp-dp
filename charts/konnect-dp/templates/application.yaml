@@ -1,0 +1,65 @@
+apiVersion: app.k8s.io/v1beta1
+kind: Application
+metadata:
+  name: {{ .Release.Name }}
+  annotations:
+    kubernetes-engine.cloud.google.com/icon: https://s3.amazonaws.com/downloads.kong/universe/assets/icon-kong-inc-large.png
+    # marketplace.cloud.google.com/deploy-info: '{"partner_id": "click-to-deploy-containers", "product_id": "kong", "partner_name": "Google Click to Deploy"}'
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+spec:
+  descriptor:
+    type: KonnectDP
+    version: "{{ .Values.kong.image.tag }}"
+    description: |-
+      Kong or Kong API Gateway is a cloud-native, platform-agnostic, scalable API Gateway
+      distinguished for its high performance and extensibility via plugins.
+      # Support
+      Google does not offer support for this solution. However, community support is available on
+      # TODO
+    maintainers:
+    - name: Kong
+      url: https://github.com/Kong
+    links:
+    - description: 'User Guide: KongDP'
+      url: https://docs.konghq.com/konnect/runtime-manager/gateway-runtime-kubernetes/
+    - description: 'Kong Konnect documentation'
+      url: https://docs.konghq.com/konnect/
+    notes: |-
+      # Access UI
+      # TODO
+      ## Other Notes
+      # TODO
+  info:
+  - name: Forward Kong port locally
+    value: kubectl port-forward --namespace {{ .Release.Namespace }} {{ .Release.Name }}-kong 8000
+  - name: Konnect Portal URL
+    value: http://localhost:3000/ # TODO
+  - name: Username
+    type: Reference
+    valueFrom:
+      type: SecretKeyRef
+      secretKeyRef:
+        name: {{ .Release.Name }}-konnect
+        key: admin-user
+  - name: Password
+    type: Reference
+    valueFrom:
+      type: SecretKeyRef
+      secretKeyRef:
+        name: {{ .Release.Name }}-password
+        key: admin-password
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Release.Name }}
+  componentKinds:
+  - group: v1
+    kind: ConfigMap
+  - group: v1
+    kind: PersistentVolumeClaim
+  - group: apps/v1
+    kind: StatefulSet
+  - group: v1
+    kind: Service
+  - group: v1
+    kind: Secret
